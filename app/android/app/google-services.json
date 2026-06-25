@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "701717758704",
+    "project_id": "dosanal",
+    "storage_bucket": "dosanal.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:701717758704:android:c102691ffeecb42045f835",
+        "android_client_info": {
+          "package_name": "com.example.doosan_alert"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxQ8bo8vNPF32Uq2M0Subm3PPHKdyPfvQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

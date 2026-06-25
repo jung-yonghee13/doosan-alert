@@ -34,3 +34,29 @@ def send_new_game(game: dict) -> str:
         android=messaging.AndroidConfig(priority="high"),
     )
     return messaging.send(message)
+
+
+def send_ticket_reminder(game: dict, stage_label: str) -> str:
+    """주말 홈경기 예매 임박 리마인더를 토픽 구독자에게 푸시한다."""
+    _ensure_init()
+
+    title = f"🎟️ 주말 홈경기 {stage_label}"
+    body = (
+        f"{game['weekday']} {game['game_date']} "
+        f"{config.TEAM_NAME} vs {game['away_name']} ({game['stadium']})\n"
+        f"예매 페이지에서 오픈 시간을 확인하세요."
+    )
+
+    message = messaging.Message(
+        topic=config.FCM_TOPIC,
+        notification=messaging.Notification(title=title, body=body),
+        data={
+            "type": "ticket_reminder",
+            "stage": stage_label,
+            "game_id": str(game["game_id"]),
+            "game_date": str(game["game_date"]),
+            "ticket_url": config.TICKET_URL,
+        },
+        android=messaging.AndroidConfig(priority="high"),
+    )
+    return messaging.send(message)

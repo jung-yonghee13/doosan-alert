@@ -26,6 +26,17 @@ def init_db() -> None:
         )
         # 최초 시드 여부를 기록(첫 실행 때 기존 일정 전체를 알림으로 쏘지 않기 위함)
         c.execute("CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)")
+        # 예매 리마인더 중복 방지: (game_id, stage) 단위로 1회만 발송
+        c.execute(
+            """
+            CREATE TABLE IF NOT EXISTS sent_reminders (
+                game_id  TEXT,
+                stage    TEXT,
+                sent_at  TEXT,
+                PRIMARY KEY (game_id, stage)
+            )
+            """
+        )
 
 
 def is_seeded() -> bool:
@@ -42,6 +53,24 @@ def mark_seeded() -> None:
 def known_ids() -> set[str]:
     with _conn() as c:
         return {r[0] for r in c.execute("SELECT game_id FROM known_games")}
+
+
+def already_reminded(game_id: str, stage: str) -> bool:
+    with _conn() as c:
+        row = c.execute(
+            "SELECT 1 FROM sent_reminders WHERE game_id=? AND stage=?",
+            (game_id, stage),
+        ).fetchone()
+        return row is not None
+
+
+def mark_reminded(game_id: str, stage: str) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    with _conn() as c:
+        c.execute(
+            "INSERT OR IGNORE INTO sent_reminders(game_id, stage, sent_at) VALUES(?,?,?)",
+            (game_id, stage, now),
+        )
 
 
 def save_games(games: list[dict]) -> None:

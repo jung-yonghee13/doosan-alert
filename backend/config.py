@@ -19,3 +19,18 @@ DB_PATH = os.getenv("DB_PATH", "games.db")
 
 # Firebase 서비스 계정 키 파일 경로
 FIREBASE_CRED_PATH = os.getenv("FIREBASE_CRED_PATH", "serviceAccountKey.json")
+
+# ── 예매 임박 리마인더 설정 (옵션 B) ──
+# 두산 예매 페이지(로그인 필요). 알림에 링크로 첨부.
+TICKET_URL = os.getenv("TICKET_URL", "https://www.doosanbears.com/ticket/reserve")
+
+# 리마인더 단계: (경기 며칠 전, 라벨). 가까워질수록 한 번씩 알림.
+#  - 7일 전: "예매 오픈 예정" (나)
+#  - 2일 전: "예매 임박" (가)
+REMIND_STAGES = [
+    (int(os.getenv("REMIND_DAYS_NOTICE", "7")), "예매 오픈 예정"),
+    (int(os.getenv("REMIND_DAYS_SOON", "2")), "예매 임박"),
+]
+
+# 주말만 알림 (월=0 ... 토=5, 일=6)
+WEEKEND_WEEKDAYS = {5, 6}

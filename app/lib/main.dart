@@ -7,8 +7,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-// firebase_options.dart 는 `flutterfire configure` 실행 시 자동 생성됩니다.
-import 'firebase_options.dart';
+// Android 는 google-services.json + google-services Gradle 플러그인으로
+// 초기화하므로 firebase_options.dart 가 필요 없습니다.
 
 const String kFcmTopic = 'doosan_games';
 const String kTeamCode = 'OB'; // 두산
@@ -27,13 +27,13 @@ const AndroidNotificationChannel _channel = AndroidNotificationChannel(
 /// 백그라운드(앱 종료/백그라운드 상태)에서 메시지를 받는 핸들러.
 @pragma('vm:entry-point')
 Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp();
   // 백그라운드에서는 OS가 notification 페이로드를 자동 표시하므로 별도 처리 불필요.
 }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp();
 
   FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
 

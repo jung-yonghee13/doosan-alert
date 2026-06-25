@@ -5,6 +5,7 @@ import time
 import config
 import fcm
 import naver
+import reminder
 import store
 
 logging.basicConfig(
@@ -56,7 +57,7 @@ def main() -> None:
     )
     while True:
         try:
-            check_once()
+            reminder.check_reminders()
         except Exception:
             log.exception("폴링 루프 오류")
         time.sleep(config.POLL_INTERVAL_SEC)
