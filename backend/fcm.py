@@ -37,15 +37,30 @@ def send_new_game(game: dict) -> str:
 
 
 def send_ticket_reminder(game: dict, stage_label: str) -> str:
-    """주말 홈경기 예매 임박 리마인더를 토픽 구독자에게 푸시한다."""
+    """주말 홈경기 예매 오픈 단계별 알림을 토픽 구독자에게 푸시한다."""
     _ensure_init()
 
-    title = f"🎟️ 주말 홈경기 {stage_label}"
-    body = (
-        f"{game['weekday']} {game['game_date']} "
-        f"{config.TEAM_NAME} vs {game['away_name']} ({game['stadium']})\n"
-        f"예매 페이지에서 오픈 시간을 확인하세요."
+    open_dt = game.get("open_dt")
+    # 윈도우 strftime은 %-m 미지원이라 수동 포맷
+    open_str = (
+        f"{open_dt.month}/{open_dt.day} {open_dt.hour:02d}:{open_dt.minute:02d}"
+        if open_dt else ""
     )
+
+    match_line = (
+        f"{game['weekday']} {game['game_date']} "
+        f"{config.TEAM_NAME} vs {game['away_name']} ({game['stadium']})"
+    )
+
+    if stage_label == "지금 예매 오픈":
+        title = "🎟️ 지금 예매 오픈!"
+        body = f"{match_line}\n지금 바로 예매하세요 → 두산 홈페이지/인터파크"
+    elif stage_label == "예매 오픈 임박":
+        title = "⏰ 예매 오픈 임박"
+        body = f"{match_line}\n{open_str} 예매 오픈! 미리 로그인해 대기하세요."
+    else:  # 예매 오픈 예정
+        title = "🎟️ 예매 오픈 예정"
+        body = f"{match_line}\n{open_str} 예매 오픈 예정입니다."
 
     message = messaging.Message(
         topic=config.FCM_TOPIC,
