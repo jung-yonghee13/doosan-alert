@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main # 재실행 시에도 항상 최신 main 을 기준으로 (옛 SHA 충돌 방지)
 
       - uses: actions/setup-python@v5
         with:
@@ -41,12 +43,22 @@ jobs:
       - name: 상태(games.db) 변경분 커밋
         run: |
           rm -f backend/serviceAccountKey.json
-          if [[ -n "$(git status --porcelain backend/games.db)" ]]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add backend/games.db
-            git commit -m "chore: update game state [skip ci]"
-            git push
-          else
+          if [[ -z "$(git status --porcelain backend/games.db)" ]]; then
             echo "변경 없음"
+            exit 0
           fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/games.db
+          git commit -m "chore: update game state [skip ci]"
+          # 동시 실행/지연으로 remote 가 앞서 있을 수 있으므로 rebase 후 재시도
+          for i in 1 2 3; do
+            if git push; then
+              echo "push 성공"
+              exit 0
+            fi
+            echo "push 거부됨, 최신 변경 반영 후 재시도 ($i)"
+            git pull --rebase -X ours origin main
+          done
+          echo "push 최종 실패" >&2
+          exit 1
