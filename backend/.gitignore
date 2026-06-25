@@ -1,0 +1,6 @@
+serviceAccountKey.json
+__pycache__/
+*.pyc
+# 참고: games.db 는 GitHub Actions 가동 시 상태 보존용으로 일부러 커밋합니다.
+# 로컬 전용으로 쓸 경우 아래 주석을 해제하세요.
+# games.db

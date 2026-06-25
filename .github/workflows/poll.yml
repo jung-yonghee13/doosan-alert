@@ -1,0 +1,52 @@
+name: 두산 경기 일정 폴링
+
+on:
+  schedule:
+    # 30분마다 실행 (UTC 기준 cron). 지연이 흔하므로 여유 있게 설정.
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {} # 수동 실행 버튼
+
+# games.db 상태 파일을 레포에 다시 커밋하기 위해 쓰기 권한 필요
+permissions:
+  contents: write
+
+concurrency:
+  group: poll
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 의존성 설치
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: 서비스 계정 키 복원 (Secret → 파일)
+        working-directory: backend
+        env:
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+        run: printf '%s' "$FIREBASE_CREDENTIALS" > serviceAccountKey.json
+
+      - name: 폴링 1회 실행
+        working-directory: backend
+        run: python run_once.py
+
+      - name: 상태(games.db) 변경분 커밋
+        run: |
+          rm -f backend/serviceAccountKey.json
+          if [[ -n "$(git status --porcelain backend/games.db)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add backend/games.db
+            git commit -m "chore: update game state [skip ci]"
+            git push
+          else
+            echo "변경 없음"
+          fi
